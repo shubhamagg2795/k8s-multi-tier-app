@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: multi-tier-app
+spec:
+  serviceName: postgres-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        tier: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: DB_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: DB_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DB_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        - name: init-db
+          mountPath: /docker-entrypoint-initdb.d
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - appuser
+            - -d
+            - appdb
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - appuser
+            - -d
+            - appdb
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: init-db
+        configMap:
+          name: init-db-script
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-db-script
+  namespace: multi-tier-app
+data:
+  init.sql: |
+    -- Create users table
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        department VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    -- Insert sample data
+    INSERT INTO users (name, email, department) VALUES
+    ('John Doe', 'john.doe@nagarro.com', 'Engineering'),
+    ('Jane Smith', 'jane.smith@nagarro.com', 'Marketing'),
+    ('Bob Johnson', 'bob.johnson@nagarro.com', 'Sales'),
+    ('Alice Williams', 'alice.williams@nagarro.com', 'HR'),
+    ('Charlie Brown', 'charlie.brown@nagarro.com', 'Finance'),
+    ('Diana Prince', 'diana.prince@nagarro.com', 'Engineering'),
+    ('Frank Miller', 'frank.miller@nagarro.com', 'Operations'),
+    ('Grace Lee', 'grace.lee@nagarro.com', 'Design'),
+    ('Henry Wilson', 'henry.wilson@nagarro.com', 'DevOps'),
+    ('Isabel Martinez', 'isabel.martinez@nagarro.com', 'QA')
+    ON CONFLICT (email) DO NOTHING;
