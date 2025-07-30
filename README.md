@@ -96,6 +96,13 @@ kubectl delete pod postgres-0 -n multi-tier-app
 - [x] **Docker Hub**: Published container image
 - [x] **Data persistence**: 10 users, survives pod restarts
 
+## 🎥 Video Recording
+
+The video demonstrating all scenarios (deployment, API access, pod failures, persistence) is available at:
+
+🔗 [Video Link] : https://nagarro-my.sharepoint.com/:f:/p/shubham_aggarwal02/Ej6nNAvXwJpMm-uIoMlAffABupxOOx_ud1dWDQM-JgRcfQ?e=I3uqSS
+
+
 ## 🧹 Cleanup
 
 ```bash
