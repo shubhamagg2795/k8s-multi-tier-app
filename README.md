@@ -103,5 +103,4 @@ kubectl delete pod postgres-0 -n multi-tier-app
 ```
 
 ---
-
-**NAGP 2025 Student** | **Deployed on Google Kubernetes Engine**
+**Deployed on Google Kubernetes Engine**
