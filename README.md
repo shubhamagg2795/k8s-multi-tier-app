@@ -1,43 +1,57 @@
-Kubernetes Multi-Tier Architecture - NAGP 2025 Assignment
-
 # Kubernetes Multi-Tier Architecture Assignment
 
 **NAGP 2025 Technology Band III Batch - Workshop on Kubernetes & DevOps**
 
 ## 📋 Project Overview
 
-Multi-tier architecture on Kubernetes with:
+Multi-tier architecture on **Google Kubernetes Engine (GKE)** with:
 - **API Tier**: Node.js REST API (4 pods, rolling updates)
-- **Database Tier**: PostgreSQL (1 pod, persistent storage)
-- **External Access**: Nginx Ingress
+- **Database Tier**: PostgreSQL (1 pod, Google Cloud persistent storage)
+- **External Access**: Google Cloud LoadBalancer (IP: `34.58.217.53`)
 
 ## 🔗 Links
 
-- **Repository**: https://github.com/your-username/k8s-multi-tier-app
+- **Repository**: https://github.com/shubhamagg2795/k8s-multi-tier-app
 - **Docker Hub**: https://hub.docker.com/r/shubhamdocker413/k8s-api-tier
-- **API URL**: http://api.local/api/users
+- **Live API**: http://34.58.217.53 (with Host header)
 
 ## 🚀 Quick Deployment
 
 ```bash
-# Deploy
-chmod +x deploy.sh
+# Deploy to GKE
 ./deploy.sh deploy
 
-# Access via port-forward
+# Or access via port-forward
 kubectl port-forward svc/api-service 8080:80 -n multi-tier-app
-
-# Or via ingress
-echo "$(minikube ip) api.local" >> /etc/hosts
 ```
 
 ## 📊 API Endpoints
 
-- `GET http://localhost:8080/` - API info
-- `GET http://localhost:8080/health` - Health check
-- `GET http://localhost:8080/api/users` - Get all users
-- `GET http://localhost:8080/api/users/:id` - Get user by ID
-- `POST http://localhost:8080/api/users` - Create user
+**Base URL**: `34.58.217.53` (requires Host header)
+
+```bash
+# API info
+curl -H "Host: api.local" http://34.58.217.53/
+
+# Health check  
+curl -H "Host: api.local" http://34.58.217.53/health
+
+# Get all users
+curl -H "Host: api.local" http://34.58.217.53/api/users
+
+# Get user by ID
+curl -H "Host: api.local" http://34.58.217.53/api/users/1
+
+# Create user
+curl -X POST -H "Host: api.local" -H "Content-Type: application/json" \
+  http://34.58.217.53/api/users \
+  -d '{"name":"Demo User","email":"demo@test.com","department":"Testing"}'
+```
+
+**Alternative (Port Forward):**
+```bash
+curl http://localhost:8080/api/users
+```
 
 ## 🗄️ Database Access
 
@@ -54,44 +68,33 @@ kubectl port-forward postgres-0 5432:5432 -n multi-tier-app
 
 ```bash
 # Test API
-curl http://localhost:8080/api/users
+curl -H "Host: api.local" http://34.58.217.53/api/users
 
 # Test pod regeneration
 kubectl delete pod $(kubectl get pods -l app=api-tier -n multi-tier-app -o jsonpath='{.items[0].metadata.name}') -n multi-tier-app
 
 # Test data persistence
 kubectl delete pod postgres-0 -n multi-tier-app
-# Wait for restart, then verify data still exists
-curl http://localhost:8080/api/users
 ```
 
 ## 📁 Structure
 
 ```
 ├── api/                 # Node.js application
-│   ├── server.js
-│   ├── package.json
-│   └── Dockerfile
-├── k8s/                 # Kubernetes manifests
-│   ├── namespace.yaml
-│   ├── configmap.yaml
-│   ├── secret.yaml
-│   ├── ingress.yaml
-│   ├── database/
-│   └── api/
+├── k8s/                 # Kubernetes manifests  
 ├── deploy.sh            # Deployment script
 └── README.md
 ```
 
 ## ✅ Requirements Met
 
-- [x] API tier: 4 pods, rolling updates, external access
-- [x] Database tier: 1 pod, persistent storage, internal only
-- [x] ConfigMap for database configuration
-- [x] Secret for database password
-- [x] Service-based communication
-- [x] Docker image on Docker Hub
-- [x] 10 users in database
+- [x] **GKE Deployment**: 2-node Google Cloud cluster
+- [x] **API tier**: 4 pods, rolling updates, Google Cloud LoadBalancer
+- [x] **Database tier**: 1 pod, Google Cloud persistent storage, internal only
+- [x] **ConfigMap & Secret**: External configuration and secure passwords
+- [x] **Service communication**: No direct pod IPs
+- [x] **Docker Hub**: Published container image
+- [x] **Data persistence**: 10 users, survives pod restarts
 
 ## 🧹 Cleanup
 
@@ -101,4 +104,4 @@ curl http://localhost:8080/api/users
 
 ---
 
-**NAGP 2025 Student** | **Kubernetes & DevOps Assignment**
+**NAGP 2025 Student** | **Deployed on Google Kubernetes Engine**
